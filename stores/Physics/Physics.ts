@@ -1,28 +1,54 @@
 import THREE, { Matrix4, Vector3 } from "three";
 import { TABLE_DIMENSIONS } from "./consts";
-import { BallField, MeshRefType } from "./types";
+import { BallField, CueField, MeshRefType } from "./types";
 
 class Physics {
   balls: Array<BallField>;
 
-  constructor(refs: Array<MeshRefType>) {
+  cue: CueField;
+
+  zoom: number;
+
+  constructor(refs: Array<MeshRefType>, ref?: MeshRefType) {
+    this.balls = refs.map((ref) => ({ ref, speed: { x: 0, y: 0, z: 0 } }));
+    this.cue = { ref, speed: { x: 0, y: 0, z: 0 } };
+    this.zoom = 1;
+  }
+
+  // helper function, not important
+  setBallRefs(refs: Array<MeshRefType>) {
     this.balls = refs.map((ref) => ({ ref, speed: { x: 0, y: 0, z: 0 } }));
   }
 
+  // helper function, not important
+  setCueRefs(ref: MeshRefType) {
+    this.cue = { ref, speed: { x: 0, y: 0, z: 0 } };
+  }
+
+  // function that saves the pinch scale
+  setZoom(zoom: number) {
+    this.zoom = zoom;
+  }
+
+  // function which marks a ball as pocketed (hides it if it is not a white ball, if it is a white ball - moves it to the center)
   pocketed(ballIndex: number) {
-    if (this.balls[ballIndex].ref.current?.position instanceof THREE.Vector3) {
-      this.balls[ballIndex].speed.x = 0;
-      this.balls[ballIndex].speed.y = 0;
-      // @ts-ignore
-      this.balls[ballIndex].ref.current.position = { x: 50, y: 50, z: 0 };
+    const ball = this.balls[ballIndex];
+    if (ball.ref.current?.position instanceof THREE.Vector3) {
+      ball.speed.x = 0;
+      ball.speed.y = 0;
+      if (ballIndex === 0) {
+        ball.ref.current.position.x = 0;
+        ball.ref.current.position.y = 0;
+      } else {
+        ball.ref.current.position.x = 100;
+        ball.ref.current.position.y = 100;
+      }
     }
   }
 
-  shoot(force: number, ballIndex: number) {
-    console.log(this.balls[ballIndex].ref.current?.position);
-
+  // A function that applies a force (actually a velocity) to a ball
+  shoot(force: number, ballIndex: number, angle: number) {
     if (this.balls.length > ballIndex) {
-      const angle = 40;
       const speedX = Math.cos(angle) * force;
       const speedY = Math.sin(angle) * force;
       this.balls[ballIndex].speed.x = speedX;
@@ -30,6 +56,7 @@ class Physics {
     }
   }
 
+  // A function that checks, if a collision occurred between two balls
   checkBallCollision(ball1Index: number, ball2Index: number) {
     const ball1 = this.balls[ball1Index];
     const ball2 = this.balls[ball2Index];
@@ -171,7 +198,8 @@ class Physics {
     // @ts-ignore
     tempMat.multiply(ball.ref.current.matrix);
     ball.ref.current.matrix = tempMat;
-    // ballRef.current.rotation?.setFromRotationMatrix(ballRef.current.matrix);
+    // @ts-ignore
+    ball.ref.current.rotation?.setFromRotationMatrix(ball.ref.current.matrix);
   }
 }
 

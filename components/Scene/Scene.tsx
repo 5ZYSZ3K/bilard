@@ -3,6 +3,8 @@ import Table from "../Table";
 import Ball from "../Ball";
 import usePhysics from "../../stores/Physics/hook";
 import { useFrame } from "@react-three/fiber/native";
+import Cue from "../Cue";
+import { Vector3 } from "three";
 const zero = require("../../assets/0.png");
 const one = require("../../assets/1.png");
 const two = require("../../assets/2.png");
@@ -19,17 +21,16 @@ const twelve = require("../../assets/12.png");
 const thirteen = require("../../assets/13.png");
 const fourteen = require("../../assets/14.png");
 const fifteen = require("../../assets/15.png");
-// import Physics from "../utils/Physics";
 
 const Scene: React.FC = () => {
-  const poolTableRef = useRef<JSX.IntrinsicElements["mesh"]>();
-
   const physics = usePhysics();
 
-  useFrame((state, delta) => {
+  useFrame(({ camera }, delta) => {
     const deltaTime = 60 * delta;
+    camera.position.z = 40 / physics.zoom;
+
     for (let i = 0; i < 16; i += 1) {
-      for (let j = 0; j < 16; j += 1) {
+      for (let j = i + 1; j < 16; j += 1) {
         if (i !== j) {
           physics.checkBallCollision(i, j);
         }
@@ -51,6 +52,9 @@ const Scene: React.FC = () => {
             position={[0, -16, 0]}
             texture={zero}
           />
+          {physics.cue.ref ? (
+            <Cue setRef={physics.cue.ref} position={new Vector3(0, 0, -1)} />
+          ) : null}
           <Ball
             setRef={physics.balls[1].ref}
             position={[-1.01, 15, 0]}

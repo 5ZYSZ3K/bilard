@@ -13,6 +13,15 @@ export type BallField = {
   };
 };
 
+export type CueField = {
+  ref?: MeshRefType;
+  speed: {
+    x: number;
+    y: number;
+    z: number;
+  };
+};
+
 export type PhysicsProviderProps = {
   children: ReactNode;
   store: Physics;
